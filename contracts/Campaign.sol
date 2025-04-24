@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.28;
 
 contract Campaign {
     struct Milestone {
@@ -32,7 +32,7 @@ contract Campaign {
     }
 
     function contribute() external payable {
-        require(msg.value > 0, "Must send ETH");
+        require(msg.value > 0, "Must send ETH > 0");
         if (contributions[msg.sender] == 0) {
             contributors.push(msg.sender);
         }
