@@ -8,10 +8,16 @@ describe("Campaign", function () {
     const [creator, contributor1, contributor2] = await hre.ethers.getSigners();
 
     const Campaign = await hre.ethers.getContractFactory("Campaign");
+
+    const descriptions = ["Milestone 1", "Milestone 2"];
+    const percentages = [50, 50];
+
     const campaign = await Campaign.deploy(
       creator.address,
       5, // funding goal
-      "Cool Campaign"
+      "Cool Campaign",
+      descriptions,
+      percentages
     );
 
     return { campaign, creator, contributor1, contributor2 };
@@ -37,34 +43,31 @@ describe("Campaign", function () {
   });
 
   describe("Milestones", function () {
-    it("should allow only the creator to create a milestone", async function () {
-      const { campaign, contributor1 } = await loadFixture(deployCampaignFixture);
-
-      await expect(
-        campaign.connect(contributor1).createMilestone("Do something", 100)
-      ).to.be.revertedWith("Only creator can call");
-    });
-
-    it("should store milestone and allow voting", async function () {
+    it("should allow milestone voting and approve with majority", async function () {
       const { campaign, creator, contributor1, contributor2 } = await loadFixture(deployCampaignFixture);
 
-      // Contributions
-      await campaign.connect(contributor1).contribute({ value: 1 });
-      await campaign.connect(contributor2).contribute({ value: 1 });
+      await campaign.connect(contributor1).contribute({ value: ethers.parseEther("1") });
+      await campaign.connect(contributor2).contribute({ value: ethers.parseEther("1") });
 
-      // Creator adds milestone
-      await campaign.connect(creator).createMilestone("Deliver feature A", 1);
+      // Creator activates milestone 0
+      await campaign.connect(creator).activateMilestoneVoting(0);
 
       // Contributors vote
       await campaign.connect(contributor1).voteOnMilestone(0);
       await campaign.connect(contributor2).voteOnMilestone(0);
 
-      // You can check approval count or approved flag here if exposed
       const milestone = await campaign.milestones(0);
-      expect(milestone.description).to.equal("Deliver feature A");
-      expect(milestone.approved).to.equal(true); // Assuming both contributors voted
+      expect(milestone.approved).to.equal(true);
     });
-  });
+
+    it("should prevent creator from voting", async function () {
+      const { campaign, creator } = await loadFixture(deployCampaignFixture);
+      await campaign.connect(creator).activateMilestoneVoting(0);
+      await expect(
+        campaign.connect(creator).voteOnMilestone(0)
+      ).to.be.revertedWith("Creator cannot vote");
+    });
+  })
 
 //   describe("Refunds", function () {
 //     it("should allow refunds if goal not met", async function () {

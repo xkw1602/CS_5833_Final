@@ -14,13 +14,14 @@ contract Campaign {
 
     address public creator;
     string public title;
-    uint public fundingGoal;
-    uint public totalRaised;
+    uint public fundingGoal; // Total amount of ETH needed to be raised, arbitrary
+    uint public totalPotentialEarnings; // Total amount of ETH donated; not awarded
     uint public milestoneCount;
+    uint public percentageAwarded; // Percentage of the total funds that has been awarded the creator based on milestone completion
 
     mapping(uint => Milestone) public milestones;
     address[] public contributors;
-    mapping(address => uint) public contributions;
+    mapping(address => uint) public contributions; // Amount of ETH contributed by each address -- mostly for refunds
 
     modifier onlyCreator() {
         require(msg.sender == creator, "Only creator can call");
@@ -50,14 +51,19 @@ contract Campaign {
         require(totalPercentage == 100, "Total percentage must be 100");
     }
 
-    // Contributors can contribute to the campagin as a whole
+    // Contributors can contribute to the campagin as a whole, milestone completion will award from the total pool of funds
     function contribute() external payable {
         require(msg.value > 0, "Must send ETH > 0");
         if (contributions[msg.sender] == 0) {
             contributors.push(msg.sender);
         }
         contributions[msg.sender] += msg.value;
-        totalRaised += msg.value;
+        totalPotentialEarnings += msg.value;
+        // If the creator has already been awarded a percentage of the funds, new contributions will automatically send the same percentage
+        if(percentageAwarded > 0){
+            uint amount = msg.value * percentageAwarded / 100;
+            payable(creator).transfer(amount);
+        }
     }
 
 
@@ -66,48 +72,54 @@ contract Campaign {
     function voteOnMilestone(uint id) external {
         Milestone storage m = milestones[id];
         require(m.votingActive, "Milestone not votable yet");
+        require(msg.sender != creator, "Creator cannot vote");
         require(contributions[msg.sender] > 0, "Not a contributor");
         require(!m.approvals[msg.sender], "Already voted");
-        require(msg.sender != creator, "Creator cannot vote");
         require(!m.approved, "Milestone already approved");
 
         m.approvals[msg.sender] = true;
         m.approvalCount++;
 
-        // 50%+ approval needed to approve
+        // 50%+ approval needed to approve -- can easily be changed to a different percentage
         if (m.approvalCount > contributors.length / 2) {
             m.approved = true;
-            payable(creator).transfer(m.percentage * totalRaised / 100);
+            payable(creator).transfer(m.percentage * totalPotentialEarnings / 100);
+            percentageAwarded += m.percentage;
+            m.votingActive = false; // Deactivate voting after approval
         }
     }
 
     // Creator activates a milestone when they are ready to have contributors vote on it
-    function activateMilestone(uint id) external onlyCreator {
+    function activateMilestoneVoting(uint id) external onlyCreator {
         Milestone storage m = milestones[id];
         require(!m.votingActive, "Milestone already active");
+        require(!m.approved, "Milestone already approved");
 
         m.votingActive = true;
     }
 
+    // Contributors can refund their pending funds at any time before campaign completion
     function refund() external {
         require(contributions[msg.sender] > 0, "Nothing to refund");
-        require(totalRaised < fundingGoal, "Goal met");
 
-        uint amount = contributions[msg.sender];
+        uint amount = contributions[msg.sender] - (contributions[msg.sender]*percentageAwarded / 100);
         contributions[msg.sender] = 0;
+        totalPotentialEarnings -= amount;
         payable(msg.sender).transfer(amount);
     }
 
     function getSummary() external view returns (
-        address, string memory, uint, uint, uint, uint
+        address, string memory, uint, uint, uint, uint, uint, uint
     ) {
         return (
             creator,
             title,
             fundingGoal,
-            totalRaised,
+            totalPotentialEarnings,
             milestoneCount,
-            contributors.length
+            contributors.length,
+            percentageAwarded,
+            address(this).balance
         );
     }
 }

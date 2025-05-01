@@ -6,8 +6,8 @@ import "./Campaign.sol";
 contract CampaignFactory {
     address[] public deployedCampaigns;
 
-    function createCampaign(uint goal, string memory title) external {
-        Campaign newCampaign = new Campaign(msg.sender, goal, title);
+    function createCampaign(uint goal, string memory title, string[] memory descriptions, uint[] memory percentages) external {
+        Campaign newCampaign = new Campaign(msg.sender, goal, title, descriptions, percentages);
         deployedCampaigns.push(address(newCampaign));
     }
 
