@@ -69,20 +69,22 @@ describe("Campaign", function () {
     });
   })
 
-//   describe("Refunds", function () {
-//     it("should allow refunds if goal not met", async function () {
-//       const { campaign, contributor1 } = await loadFixture(deployCampaignFixture);
+  describe("Refunds", function () {
+    it("should allow refund if goal not met", async function () {
+      const { campaign, contributor1 } = await loadFixture(deployCampaignFixture);
 
-//       await campaign.connect(contributor1).contribute({ value: 1 });
+      const value = ethers.parseEther("1");      
+      const initialBalance = await hre.ethers.provider.getBalance(contributor1.address);
+      await campaign.connect(contributor1).contribute({ value });
 
-//       const initialBalance = await hre.ethers.provider.getBalance(contributor1.address);
+      const tx = await campaign.connect(contributor1).refund();
+      const receipt = await tx.wait();
+      const gasUsed = receipt.gasUsed * BigInt(receipt.gasPrice);
 
-//       const tx = await campaign.connect(contributor1).refund();
-//       const receipt = await tx.wait();
-//       const gasUsed = receipt.gasUsed.mul(receipt.effectiveGasPrice);
+      const finalBalance = await hre.ethers.provider.getBalance(contributor1.address);
 
-//       const finalBalance = await hre.ethers.provider.getBalance(contributor1.address);
-//       expect(finalBalance.add(gasUsed)).to.be.closeTo(initialBalance, ethers.utils.parseEther("0.001"));
-//     });
-//   });
+      // Allow some margin due to gas usage
+      expect(finalBalance + gasUsed).to.be.closeTo(initialBalance, ethers.parseEther("0.001"));
+    });
+  });
 });

@@ -47,7 +47,7 @@ describe("CampaignFactory", function () {
       const campaign = await Campaign.attach(campaignAddress);
 
       expect(await campaign.creator()).to.equal(otherUser.address);
-      expect(await campaign.fundingGoal()).to.equal(10);
+      expect(await campaign.fundingGoal()).to.equal(ethers.parseEther("10"));
       expect(await campaign.title()).to.equal("Community DAO");
     });
   });
