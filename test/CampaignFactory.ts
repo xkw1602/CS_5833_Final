@@ -24,7 +24,10 @@ describe("CampaignFactory", function () {
     it("should allow users to create campaigns", async function () {
       const { factory, owner } = await loadFixture(deployFactoryFixture);
 
-      await factory.createCampaign(5, "Test Campaign");
+      const descriptions = ["Milestone 1", "Milestone 2"];
+      const percentages = [50, 50];
+
+      await factory.createCampaign(ethers.parseEther("5"), "Test Campaign", descriptions, percentages);
 
       const deployedCampaigns = await factory.getCampaigns();
       expect(deployedCampaigns.length).to.equal(1);
@@ -34,14 +37,17 @@ describe("CampaignFactory", function () {
     it("should deploy a campaign with the correct creator and goal", async function () {
       const { factory, otherUser } = await loadFixture(deployFactoryFixture);
 
-      await factory.connect(otherUser).createCampaign(10, "Community DAO");
+      const descriptions = ["Milestone 1", "Milestone 2"];
+      const percentages = [50, 50];
+
+      await factory.connect(otherUser).createCampaign(ethers.parseEther("10"), "Community DAO", descriptions, percentages);
 
       const campaignAddress = (await factory.getCampaigns())[0];
       const Campaign = await ethers.getContractFactory("Campaign");
       const campaign = await Campaign.attach(campaignAddress);
 
       expect(await campaign.creator()).to.equal(otherUser.address);
-      expect(await campaign.fundingGoal()).to.equal(10);
+      expect(await campaign.fundingGoal()).to.equal(ethers.parseEther("10"));
       expect(await campaign.title()).to.equal("Community DAO");
     });
   });
