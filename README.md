@@ -28,6 +28,9 @@ This project is a decentralized crowdfunding application built on the Ethereum b
 - [Git](https://git-scm.com/)
 - [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/about/)
 
+### 0. Open WSL 2 (Windows)
+Windows users should run this project using WSL 2. This works conveniently within VS Code if that is what you using. Linux/MacOS users may skip this section.
+
 ### 1. Clone the repository
 
 ```bash
