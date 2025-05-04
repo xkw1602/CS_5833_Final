@@ -15,14 +15,16 @@ contract Campaign {
     address public creator;
     string public title;
     uint public fundingGoal; // Total amount of ETH needed to be raised, arbitrary
-    uint public totalPotentialEarnings; // Total amount of ETH donated; not awarded
+    uint public totalPotentialEarnings; // Total amount of ETH donated -- not awarded
     uint public milestoneCount;
     uint public percentageAwarded; // Percentage of the total funds that has been awarded the creator based on milestone completion
+    uint public amountSent; // Amount of ETH sent to the creator
 
     mapping(uint => Milestone) public milestones;
     address[] public contributors;
     mapping(address => uint) public contributions; // Amount of ETH contributed by each address -- mostly for refunds
 
+    // Modifier to restrict access of certain functions to the creator of the campaign
     modifier onlyCreator() {
         require(msg.sender == creator, "Only creator can call");
         _;
@@ -63,6 +65,7 @@ contract Campaign {
         if(percentageAwarded > 0){
             uint amount = msg.value * percentageAwarded / 100;
             payable(creator).transfer(amount);
+            amountSent += amount;
         }
     }
 
@@ -82,8 +85,10 @@ contract Campaign {
 
         // 50%+ approval needed to approve -- can easily be changed to a different percentage
         if (m.approvalCount > contributors.length / 2) {
+            uint amount = totalPotentialEarnings * m.percentage / 100;
             m.approved = true;
-            payable(creator).transfer(m.percentage * totalPotentialEarnings / 100);
+            payable(creator).transfer(amount);
+            amountSent += amount;
             percentageAwarded += m.percentage;
             m.votingActive = false; // Deactivate voting after approval
         }
@@ -105,11 +110,21 @@ contract Campaign {
         uint amount = contributions[msg.sender] - (contributions[msg.sender]*percentageAwarded / 100);
         contributions[msg.sender] = 0;
         totalPotentialEarnings -= amount;
+
+        // Remove contributor from the array
+        for (uint i = 0; i < contributors.length; i++) {
+            if (contributors[i] == msg.sender) {
+                contributors[i] = contributors[contributors.length - 1]; // Move last element into place
+                contributors.pop(); // Remove last element
+                break;
+            }
+        }
+        // Transfer the amount back to the contributor
         payable(msg.sender).transfer(amount);
     }
 
     function getSummary() external view returns (
-        address, string memory, uint, uint, uint, uint, uint, uint
+        address, string memory, uint, uint, uint, uint, uint, uint, uint
     ) {
         return (
             creator,
@@ -119,7 +134,8 @@ contract Campaign {
             milestoneCount,
             contributors.length,
             percentageAwarded,
-            address(this).balance
+            address(this).balance,
+            amountSent
         );
     }
 }

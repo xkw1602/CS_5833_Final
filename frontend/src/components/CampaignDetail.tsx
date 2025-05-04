@@ -92,7 +92,8 @@ function CampaignDetail() {
       <p><strong>Title:</strong> {summary[1]}</p>
       <p><strong>Creator:</strong> {summary[0]}</p>
       <p><strong>Funding Goal:</strong> {ethers.formatEther(summary[2] || 0)} ETH</p>
-      <p><strong>Total Raised:</strong> {ethers.formatEther(summary[3] || 0)} ETH</p>
+      <p><strong>Total Pending ETH:</strong> {ethers.formatEther(summary[7] || 0)} ETH</p>
+      <p><strong>Total ETH Sent to Creator:</strong> {ethers.formatEther(summary[8] || 0)} ETH</p>
       <p><strong>Milestones:</strong> {summary[4]}</p>
       <p><strong>Contributors:</strong> {summary[5]}</p>
 
