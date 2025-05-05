@@ -110,7 +110,7 @@ function CampaignDetail() {
       <hr />
       <h3>Milestones</h3>
       {milestones.map((m) => (
-        <div key={m.id} style={{ marginBottom: 15, padding: 10, border: "1px solid #ccc" }}>
+        <div key={m.id} style={{ marginBottom: 15, padding: 10, border: "1px solid #ccc" , backgroundColor: "#f9f9f9"}}>
           <p><strong>Description:</strong> {m.description}</p>
           <p><strong>Percentage:</strong> {m.percentage}%</p>
           <p><strong>Approved:</strong> {m.approved ? "✅ Yes" : "❌ No"}</p>
