@@ -1,6 +1,13 @@
 # Decentralized Crowdfunding Platform
 
+[Watch the demo video](https://youtu.be/QAT5J1okExY)
+
+
 This project is a decentralized crowdfunding application built on the Ethereum blockchain using smart contracts. It allows creators to define campaigns with milestone-based funding goals, and lets contributors vote on milestone completion before funds are released. The system aims to improve transparency, accountability, and user trust compared to traditional Web2 crowdfunding platforms by alllowing contributors to exercise more control over how their funds are used after they are donated.
+
+Aside from just creating a crowdfunding platform that runs on smart contracts, the main issue I attempt to resolve with this model is preventing campaign creators from disappearing and failing to fulfill promises after they have received funds. This model requires creators to set a list of milestones they intend to complete, then let the donors vote to verify the actual completion of the task. Once a milestone has been approved, a fraction of the donated funds are sent to the creator, otherwise donors are able to refund the money they sent. All this is handled on-chain within the smart contract that represents the campaign, increasing autonomy and decentralization, while improving the crowdfudning system. 
+
+This has been a fun project to illustrate how smart contracts can be used in building transparent, community-driven systems to increase accountability. I hope that this can serve as a foundation for similar platforms and ideas as blockchain technology continues to mature!
 
 ## Features
 
